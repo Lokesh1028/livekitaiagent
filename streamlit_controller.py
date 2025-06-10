@@ -18,14 +18,15 @@ def is_agent_running():
     return False
 
 def start_agent():
-    """Start the agent in console mode"""
+    """Start the agent in dev mode for cloud deployment"""
     try:
-        cmd = ["python", "agent_groq.py", "console"]
+        cmd = ["python", "agent_groq.py", "dev"]
         st.session_state.agent_process = subprocess.Popen(
             cmd, 
             stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            cwd=os.getcwd()
         )
         return True
     except Exception as e:
@@ -46,10 +47,14 @@ def get_agent_logs():
         try:
             # Read available output (non-blocking)
             output = st.session_state.agent_process.stdout.readline()
+            error_output = st.session_state.agent_process.stderr.readline()
+            
             if output:
-                return output.strip()
-        except:
-            pass
+                return f"OUT: {output.strip()}"
+            elif error_output:
+                return f"ERR: {error_output.strip()}"
+        except Exception as e:
+            return f"LOG ERROR: {e}"
     return None
 
 # Main UI
@@ -90,14 +95,15 @@ st.header("📚 How to Use")
 
 if running:
     st.info("""
-    **Agent is Running:**
-    - Speak to your computer's microphone
-    - Agent responds through speakers
-    - No additional setup needed
+    **Agent is Running in Development Mode:**
+    - Agent is waiting for connections via LiveKit
+    - Use the LiveKit Agents Playground to test
+    - Connect via web interface at: https://agents.livekit.io/
     """)
+    st.markdown("🌐 [Open Agents Playground](https://agents.livekit.io/)")
 else:
     st.warning("**Agent Not Running**")
-    st.write("Click 'Start Agent' to begin using the voice agent with your local microphone and speakers.")
+    st.write("Click 'Start Agent' to deploy the voice agent and make it available for connections.")
 
 # Environment check
 st.header("⚙️ Environment Status")
@@ -114,6 +120,26 @@ for var, value in env_vars.items():
         st.success(f"✅ {var} configured")
     else:
         st.error(f"❌ {var} missing")
+
+# Debug and Logs section
+st.header("🔍 Debug Information")
+
+# Show agent process status
+if st.session_state.agent_process:
+    poll_result = st.session_state.agent_process.poll()
+    if poll_result is None:
+        st.success(f"✅ Process running (PID: {st.session_state.agent_process.pid})")
+    else:
+        st.error(f"❌ Process exited with code: {poll_result}")
+        # Show error output if process failed
+        try:
+            stderr_output = st.session_state.agent_process.stderr.read()
+            if stderr_output:
+                st.code(f"Error output: {stderr_output}", language="text")
+        except:
+            pass
+else:
+    st.info("No agent process started")
 
 # Logs section (if running)
 if running:
