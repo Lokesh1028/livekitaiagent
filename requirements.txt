@@ -1,0 +1,12 @@
+# Streamlit controller dependencies
+streamlit>=1.28.0
+psutil>=5.9.0
+
+# LiveKit agent dependencies
+python-dotenv>=1.0.0
+livekit-agents>=0.8.0
+livekit-plugins-groq>=0.5.0
+livekit-plugins-cartesia>=0.4.0
+livekit-plugins-silero>=0.5.0
+livekit-plugins-noise-cancellation>=0.1.0
+livekit-plugins-turn-detector>=0.1.0 
